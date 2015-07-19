@@ -5,17 +5,15 @@ output:
     keep_md: true
 ---
 
-
-## Loading and preprocessing the data
-#load the data
+1.load the data
 project<-read.csv("activity.csv")
 head(project)
 str(project)
-#there are 61 days
+there are 61 days
 unique(project$date) 
-#exclude NA values
+2.exclude NA values
 newdata<-na.omit(project)
-#transform the activity data
+3.transform the activity data
 activity <- transform(newdata, 
                       datetime = strptime( paste(date,formatC(interval,width=4,flag="0")), "%Y-%m-%d %H%M"))
 head(activity)  
@@ -23,25 +21,25 @@ head(activity)
 
 ## What is mean total number of steps taken per day?
 
-#calculate the total number of steps taken per day
+1.calculate the total number of steps taken per day
 sumstep<-aggregate(newdata[,1],list(newdata$date),sum)
 sumstep
 
-#q2.2
-#calculate the mean per date
+2.calculate the mean per date
 meanstep<-sum(sumstep$x)/53
 meanstep
 hist(sumstep[,2],col="red",xlab="total steps numbers",main="total number of steps taken by each day",breaks=61)
 
-#q2.3
-#calcualte the mean and median of the total number of steps taken per day
+3.calcualte the mean and median of the total number of steps taken per day
 meanstep<-sum(sumstep$x)/53
 meanstep
 medianstep<-median(sumstep$x)
 medianstep
-
+* Mean: meanstep *
+* Median: median *
 
 ## What is the average daily activity pattern?
+1.make time series plot
 intervalstep<-aggregate(newdata[,1],list(newdata$interval),mean)
 timeseriesdata<-ggplot(intervalstep,aes(intervalstep[,1],intervalstep[,2]))+
   geom_line(color='red')+
@@ -49,31 +47,30 @@ timeseriesdata<-ggplot(intervalstep,aes(intervalstep[,1],intervalstep[,2]))+
   xlab("5-min interval")+ylab("steps taken")
 timeseriesdata
 
-#q3.2
-#calculate which 5-minute interval has the maximum number of steps
+2.calculate which 5-minute interval has the maximum number of steps
 df3<-data.frame(x=intervalstep[,2])
 m<-max(df3$x)
 which(df3$x==m)
-#Therefore the 104th interval has the largest 
+*Therefore the 104th interval has the largest* 
 
 ## Imputing missing values
-#q4.1
-#total number of missing values in the dataset
+1.total number of missing values in the dataset
 df4<-data.frame(project[,1],project[,2],project[,3])
 sum(is.na(df4[,1]))
-#Therefore, there are 2304 rows of missing values
+*Therefore, there are 2304 rows of missing values*
 
-#q4.2
-#devise the filling strategy for missing values
+2.devise the filling strategy for missing values
 Through calculation, I found only 8 days out of 61 days have NA values.
 I will just calculate the mean step of those 8 days and replace the NA values
 with the mean step of that day
 
-#4.3
+3. Create a new dataset that is equal to the original dataset
 missing<-is.na(df4[,1])
 na<-split(project[,1][missing],project[,2])
 na
-#found only 8 dates have NA values and all the values are NAs
+
+*found only 8 dates have NA values and all the values are NAs*
+
 s<-split(project$steps,project$date)
 #replace NA values with 0
 s[1]<-list(rep(0,288))
@@ -84,31 +81,35 @@ s[40]<-list(rep(0,288))
 s[41]<-list(rep(0,288))
 s[45]<-list(rep(0,288))
 s[61]<-list(rep(0,288))
-#combine the list back again called newdf
+
 newdf<-do.call(rbind, lapply(s,data.frame,stringsAsFactors=FALSE))
 newdf$date<-project$date
 newdf$interval<-project$interval
 
-#q4.4
+4. make a histogram of the total number of steps taken each day
 sumstep1<-aggregate(newdf[,1],list(newdf$date),sum)
+
+newhist<-hist(sumstep1[,2],col="red",xlab="total steps numbers",main="total number of steps taken by each day",breaks=61)
+
+5. Calculate and report the mean and median
 meanstep1<-sum(sumstep1[,2])/53
 meanstep1
 medianstep1<-median(sumstep1[,2])
 medianstep1
 
-newhist<-hist(sumstep1[,2],col="red",xlab="total steps numbers",main="total number of steps taken by each day",breaks=61)
-#Yes, the mean are still the same because we found all the NA values concentrated at each days, the original mean was zero
-#after we replace the original values with the mean, all the NA values become 0. Therefore, the mean are still the same.
-#However, since there are more values in the dataset, the median does change to 10395 instead.
+
+*Yes, the mean are still the same because we found all the NA values concentrated at each days, the original mean was zero
+after we replace the original values with the mean, all the NA values become 0. Therefore, the mean are still the same.
+However, since there are more values in the dataset, the median does change to 10395 instead.*
 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-Yes. There are differences.
+*Yes. There are differences.*
 
-#transform factor into date format
+1.transform factor into date format
 time<-as.Date(newdf[,2],format="%Y-%m-%d")
-#translate date into weekdays and add into newdf
+2.translate date into weekdays and add into newdf
 newdf$weekday<-weekdays(time)
 
 newdf$weekday[newdf$weekday=="Sunday"| newdf$weekday=="Saturday"]<-"Weekend"
@@ -116,7 +117,7 @@ newdf$weekday[newdf$weekday=="Monday"| newdf$weekday=="Tuesday"| newdf$weekday==
 newdf$weekday<-newdf$weekday
 newdf
 
-#q5.2
+3.make the time series plot
 ninterval<-as.numeric(newdf$interval)
 df1<-newdf[which(newdf$weekday=="Weekend"),]
 df2<-newdf[which(newdf$weekday=="Weekdays"),]
